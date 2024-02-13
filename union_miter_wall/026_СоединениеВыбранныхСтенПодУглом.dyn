@@ -1,0 +1,86 @@
+{
+  "Uuid": "d3ea7a1e-8d02-49e8-9e5e-a542f04214b8",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "026_СоединениеВыбранныхСтенПодУглом",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\r\nclr.AddReference(\"RevitAPI\")\r\nfrom Autodesk.Revit import DB\r\nclr.AddReference('RevitServices')\r\nfrom RevitServices.Persistence import DocumentManager\r\n\r\n\r\nTRANSACTION_NAME = (\r\n    'DYNAMO Соединение выбранных стен под углом.'\r\n)\r\n\r\n\r\nuiapp = DocumentManager.Instance.CurrentUIApplication\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\napp = uiapp.Application\r\nuidoc = uiapp.ActiveUIDocument\r\n\r\n\r\nclass SelectException(Exception):\r\n    pass\r\n\r\n\r\ndef check_selection_element(select_el):\r\n    except_message = 'Выберите хотя бы одну стену.'\r\n    if not select_el:\r\n        raise SelectException(except_message)\r\n\r\n\r\ndef set_miter_walls(walls):\r\n    \"\"\"\r\n    Mitter compound for walls\r\n    \"\"\"\r\n    with DB.Transaction(doc, TRANSACTION_NAME) as t:\r\n        t.Start()\r\n        for wall in walls:\r\n            location_curve = wall.Location\r\n            location_curve.JoinType[1] = DB.JoinType.Miter\r\n            location_curve.JoinType[0] = DB.JoinType.Miter\r\n        t.Commit()\r\n\r\n\r\nselection_wall = set_miter_walls([\r\n    doc.GetElement(el_id) for el_id in uidoc.Selection.GetElementIds()\r\n    if isinstance(doc.GetElement(el_id), DB.Wall)\r\n])\r\n\r\ncheck_selection_element(selection_wall)\r\n\r\nOUT = 'Соединено {}'.format(str(len(selection_wall)))\r\n",
+      "VariableInputPorts": true,
+      "Id": "eca8a1d403834079ae644371a240916e",
+      "Inputs": [
+        {
+          "Id": "be34d513980f4075bfd46d0fbec773df",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "c9b3e07bf4d9456f845a26b42b64d3f1",
+          "Name": "OUT",
+          "Description": "Результат сценария Python",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Выполнение встроенного сценария IronPython."
+    }
+  ],
+  "Connectors": [],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.6.1.8786",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Фоновый просмотр",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "eca8a1d403834079ae644371a240916e",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 146.0,
+        "Y": 125.0
+      }
+    ],
+    "Annotations": [],
+    "X": 78.910841695998812,
+    "Y": 202.65735712944814,
+    "Zoom": 1.0298856394709861
+  }
+}
