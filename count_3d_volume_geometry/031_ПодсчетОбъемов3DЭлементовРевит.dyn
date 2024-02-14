@@ -1,0 +1,317 @@
+{
+  "Uuid": "acdee1cc-7126-41a8-a80d-4a0c116869c2",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "031_ПодсчетОбъемов3DЭлементовРевит",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonStringNode, PythonNodeModels",
+      "VariableInputPorts": true,
+      "NodeType": "ExtensionNode",
+      "Id": "a49a7b74aefc4390bac307521546f711",
+      "Inputs": [
+        {
+          "Id": "18d27936ca5649f29ea040d4e7d92091",
+          "Name": "script",
+          "Description": "Сценарий Python для запуска.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c428e856526748e5b57c01061cae5b21",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "cfe288fcee8745d1b799ea90ad9d5287",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5287aac7134b4b8383fe50545f74667a",
+          "Name": "OUT",
+          "Description": "Результат сценария Python",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Выполнение сценария IronPython из строки."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.IO.FileSystem.ReadText@var",
+      "Id": "b35602e2fa1145f6b2b9d38f6031bb39",
+      "Inputs": [
+        {
+          "Id": "d49daf7e50b84d458d973f09be7e1e65",
+          "Name": "file",
+          "Description": "var",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "1ad66463b69447259b90278ebdd05e44",
+          "Name": "str",
+          "Description": "Содержимое текстового файла.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Чтение текстового файла с выводом содержимого в виде строки.\n\nFileSystem.ReadText (file: var): string"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.FileObject, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "a02f8136821c4be5850bc26f25a4c203",
+      "Inputs": [
+        {
+          "Id": "b58373f8529340fc9cfa900ea8778692",
+          "Name": "path",
+          "Description": "Путь к файлу.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5c70363efe4e4dd89c6915cccc8f1bf7",
+          "Name": "file",
+          "Description": "Файловый объект",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Создание нового объекта на основе пути."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "NodeType": "StringInputNode",
+      "InputValue": "Y:\\!00_RevitFileServer\\99_BIM-Database\\080_Dynamo\\031_ПодсчетОбъемов3DЭлементовРевит\\GetGeometry\\main.py",
+      "Id": "ca0d55312e6a431c86171c64304a9918",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "57436c1b812146bd98d6ea5a2512e2f0",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Создание строки."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "c32eaffe13e44aba95e4c1741e23b567",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "759805fbcdd64f9ab7097df374b06b77",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Выбор между значениями true и false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "NodeType": "StringInputNode",
+      "InputValue": "ADSK_Размер_Объем",
+      "Id": "89b07b81f48744d18fe243ec8d2da956",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "8e9a83dfb58240febfca6a314e0406c8",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Создание строки."
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "1ad66463b69447259b90278ebdd05e44",
+      "End": "18d27936ca5649f29ea040d4e7d92091",
+      "Id": "0cf57e2661ea4cd4bd8f8c162f4a52a1"
+    },
+    {
+      "Start": "5c70363efe4e4dd89c6915cccc8f1bf7",
+      "End": "d49daf7e50b84d458d973f09be7e1e65",
+      "Id": "3fc62b61ecb14c01a4312a6cf137f09d"
+    },
+    {
+      "Start": "57436c1b812146bd98d6ea5a2512e2f0",
+      "End": "b58373f8529340fc9cfa900ea8778692",
+      "Id": "1a4f396f9b6a4e9b8b64eed7a10bb571"
+    },
+    {
+      "Start": "759805fbcdd64f9ab7097df374b06b77",
+      "End": "cfe288fcee8745d1b799ea90ad9d5287",
+      "Id": "fe58da397c17423398358c2fd780ed51"
+    },
+    {
+      "Start": "8e9a83dfb58240febfca6a314e0406c8",
+      "End": "c428e856526748e5b57c01061cae5b21",
+      "Id": "2d9cc5be9ca84c39a314bd5a90dfbb4d"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.6.1.8786",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Фоновый просмотр",
+      "EyeX": 92240.271618471917,
+      "EyeY": -1212.7685704926735,
+      "EyeZ": -103954.89487023887,
+      "LookX": 16421.447131528083,
+      "LookY": 5212.7685704926735,
+      "LookZ": 6697.9144014888734,
+      "UpX": 0.064590356352471956,
+      "UpY": -0.99756405025982886,
+      "UpZ": 0.02634485709726684
+    },
+    "NodeViews": [
+      {
+        "Id": "a49a7b74aefc4390bac307521546f711",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Python Script From String",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 552.668605791,
+        "Y": 788.48743326463352
+      },
+      {
+        "Id": "b35602e2fa1145f6b2b9d38f6031bb39",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "FileSystem.ReadText",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 349.18691602407591,
+        "Y": 686.04884455907234
+      },
+      {
+        "Id": "a02f8136821c4be5850bc26f25a4c203",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "File From Path",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 228.07047676046426,
+        "Y": 685.58642892819091
+      },
+      {
+        "Id": "ca0d55312e6a431c86171c64304a9918",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Путь до Python скрипта",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 3.6734674215549603,
+        "Y": 685.53685909304693
+      },
+      {
+        "Id": "c32eaffe13e44aba95e4c1741e23b567",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "ПовторитьСкрипт",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 326.15932161963013,
+        "Y": 923.621969389289
+      },
+      {
+        "Id": "89b07b81f48744d18fe243ec8d2da956",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Имя параметра подсчета объема",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 228.90922196350459,
+        "Y": 839.15006608397118
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "87f06aadb8b44d3cbf5e61478e2921b6",
+        "Title": "Путь до скрипта",
+        "Nodes": [
+          "ca0d55312e6a431c86171c64304a9918",
+          "a02f8136821c4be5850bc26f25a4c203",
+          "b35602e2fa1145f6b2b9d38f6031bb39"
+        ],
+        "Left": -6.32653257844504,
+        "Top": 632.53685909304693,
+        "Width": 518.513448602521,
+        "Height": 146.51198546602541,
+        "FontSize": 36.0,
+        "InitialTop": 685.53685909304693,
+        "InitialHeight": 145.51198546602541,
+        "TextblockHeight": 43.0,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": 27.371285420027192,
+    "Y": -371.97127717898843,
+    "Zoom": 0.93402314099338146
+  }
+}
