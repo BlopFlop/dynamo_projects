@@ -3,20 +3,20 @@ import math
 
 import clr
 clr.AddReference("RevitAPI")
-from Autodesk.Revit import DB
-from Autodesk.Revit.DB import FilteredElementCollector as FEC
 clr.AddReference("RevitAPIUI")
-from Autodesk.Revit import UI
-from Autodesk.Revit.UI.Events import DialogBoxShowingEventArgs
 clr.AddReference("RevitNodes")
-import Revit
+clr.AddReference('RevitServices')
+import Autodesk.Revit.DB as DB # noqa
+import Autodesk.Revit.UI as UI # noqa
+import Autodesk.Revit.UI.Events.DialogBoxShowingEventArgs as DialogBoxShowingEventArgs # noqa
+import Revit # noqa
 clr.ImportExtensions(Revit.Elements)
 clr.ImportExtensions(Revit.GeometryConversion)
-clr.AddReference('RevitServices')
-from RevitServices.Persistence import DocumentManager
-from System import EventHandler
-from System.Collections.Generic import List
+import RevitServices.Persistence.DocumentManager as DocumentManager # noqa
+import System.EventHandler as EventHandler # noqa
 
+
+FEC = DB.FilteredElementCollector
 
 MESSAGE_TRANSACTION_DELETE_FAM = 'DYNAMO Удаление старого семейства'
 MESSAGE_TRANSACTION_CUT_VOID_ELT = (
@@ -26,7 +26,7 @@ MESSAGE_TRANSACTION_CUT_VOID_ELT = (
 CREATE_FAMILY_NAME = 'CutGeometryElements'
 PATH_TEMPLATE_FAMITLY_TYPE_MODEL = (
     os.path.join(
-        os.path.dirname(IN[0]), 'Метрическая система, типовая модель.rft'
+        os.path.dirname(IN[0]), 'Метрическая система, типовая модель.rft' # noqa
     )
 )
 BINPAR_WORKSET = DB.BuiltInParameter.ELEM_PARTITION_PARAM
@@ -127,9 +127,8 @@ def create_new_family_element(document, name_symbol):
     symbol.Activate()
     try:
         return document.Create.NewFamilyInstance(
-            DB.XYZ(0, 0, 0),
-            symbol,
-            DB.Structure.StructuralType.NonStructural)
+            DB.XYZ(0, 0, 0), symbol, DB.Structure.StructuralType.NonStructural
+        )
     except Exception:
         return None
 
@@ -163,7 +162,8 @@ def doc_get_and_cut_intersect_element(
     for element in elements:
         try:
             DB.InstanceVoidCutUtils.AddInstanceVoidCut(
-                doc, element, void_element)
+                doc, element, void_element
+            )
         except Exception:
             continue
 
@@ -178,9 +178,7 @@ def create_free_form_elt(fam_doc, solids):
     '''
     free_form_list = []
     for solid in solids:
-        free_form_list.append(
-            DB.FreeFormElement.Create(fam_doc, solid)
-        )
+        free_form_list.append(DB.FreeFormElement.Create(fam_doc, solid))
     return free_form_list
 
 
@@ -278,8 +276,10 @@ def create_void_element(application,
 
         solids = []
         for element in stairs:
-            solids += (get_all_solids_for_element(
-                doc, element.Geometry[g_options]))
+            solid = get_all_solids_for_element(
+                DOC, element.Geometry[g_options]
+            )
+            solids += solid
         solid = union_solids(solids)
         t.RollBack()
 
@@ -334,31 +334,31 @@ def create_void_element(application,
     family_doc.Close(False)
 
 
-uiapp = DocumentManager.Instance.CurrentUIApplication
-doc = DocumentManager.Instance.CurrentDBDocument
-app = uiapp.Application
-uidoc = uiapp.ActiveUIDocument
+UIAPP = DocumentManager.Instance.CurrentUIApplication
+DOC = DocumentManager.Instance.CurrentDBDocument
+APP = UIAPP.Application
+UIDOC = UIAPP.ActiveUIDocument
 
 g_options = DB.Options()
 g_options.DetailLevel = DB.ViewDetailLevel.Fine
 
 stairs = [
-    stair for stair in FEC(doc).OfClass(DB.Architecture.Stairs)
+    stair for stair in FEC(DOC).OfClass(DB.Architecture.Stairs)
 ]
 
-with DB.Transaction(doc, MESSAGE_TRANSACTION_DELETE_FAM) as t:
+with DB.Transaction(DOC, MESSAGE_TRANSACTION_DELETE_FAM) as t:
     t.Start()
     delete_family = [
-        family for family in FEC(doc).OfClass(DB.Family)
+        family for family in FEC(DOC).OfClass(DB.Family)
         if family.Name == CREATE_FAMILY_NAME
     ]
     if delete_family:
-        doc.Delete(delete_family[0].Id)
+        DOC.Delete(delete_family[0].Id)
     t.Commit()
 
 
 if not len(stairs):
     raise SelectException('В проекте не найдено ни одной лестницы!')
 else:
-    create_void_element(app, doc, stairs, IN[1].Id)
+    create_void_element(APP, DOC, stairs, IN[1].Id) # noqa
     OUT = 'Все готово'

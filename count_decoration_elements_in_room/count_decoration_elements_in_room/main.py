@@ -1,17 +1,17 @@
 import clr
 clr.AddReference("RevitAPI")
-from Autodesk.Revit import DB
-from Autodesk.Revit.DB import FilteredElementCollector as FEC
+import Autodesk.Revit.DB as DB # noqa
 clr.AddReference("RevitNodes")
-import Revit
+import Revit # noqa
 clr.ImportExtensions(Revit.Elements)
 clr.ImportExtensions(Revit.GeometryConversion)
 clr.AddReference('RevitServices')
-from RevitServices.Persistence import DocumentManager
-from System import Type
-from System.Collections.Generic import List
+import RevitServices.Persistence.DocumentManager as DocumentManager # noqa
+import System.Type as Type # noqa
+import System.Collections.Generic.List as List # noqa
 
 
+FEC = DB.FilteredElementCollector
 NAME_TRANSACITON_COUNT_DECOR = 'DYNAMO Подсчет отделки помещений'
 NAME_TRANSACITON_SET_PAR_DECOR = 'DYNAMO Запись параметров отделки в помещения'
 CLASS_ELEMENTS = [DB.Wall, DB.Floor, DB.Ceiling, DB.WallSweep]
@@ -22,11 +22,11 @@ uiapp = DocumentManager.Instance.CurrentUIApplication
 app = uiapp.Application
 uidoc = uiapp.ActiveUIDocument
 
-dyn_bool_calc_room_write_val_finish = IN[0]
-dyn_bool_var_sort_in_data = IN[1]
-dyn_name_schedule = IN[2]
-dyn_name_recording_val_room_in_decoration = IN[3:7]
-dyn_name_recording_val_decoration_in_room = IN[7]
+DYN_BOOL_CALC_ROOM_WRITE_VAL_FINISH = IN[0] # noqa
+DYN_BOOL_VAR_SORT_IN_DATA = IN[1] # noqa
+DYN_NAME_SCHEDULE = IN[2] # noqa
+DYN_NAME_RECORDING_VAL_ROOM_IN_DECORATION = IN[3:7] # noqa
+DYN_NAME_RECORDING_VAL_DECORATION_IN_ROOM = IN[7] # noqa
 
 
 class SelectException(Exception):
@@ -119,13 +119,13 @@ def get_selection_rooms():
     return rooms
 
 
-def get_name_schedule(data=dyn_name_schedule[1:]):
+def get_name_schedule(data=DYN_NAME_SCHEDULE[1:]):
     '''Получение имен спецификаций из исходных данных Excel DYNAMO.'''
     return [item[0] for item in data if item[0]]
 
 
 def get_project_par_decoration_and_room(
-        data=dyn_name_recording_val_room_in_decoration):
+        data=DYN_NAME_RECORDING_VAL_ROOM_IN_DECORATION):
     '''
     Получение имен параметров проекта помещений из Excel таблицы.
     Возвращаемое значение:
@@ -144,7 +144,7 @@ def get_project_par_decoration_and_room(
 
 
 def get_project_par_room_and_decoration(
-        data=dyn_name_recording_val_decoration_in_room):
+        data=DYN_NAME_RECORDING_VAL_DECORATION_IN_ROOM):
     '''
     Получение имен параметров проекта отделки из Excel таблицы.
     возвращаемое значение: list[str]
@@ -224,7 +224,7 @@ def check_parameter_in_all_element(
         for values in data_room_in_decoration.values()
         for i in range(len(values))
     ]
-    if dyn_bool_calc_room_write_val_finish:
+    if DYN_BOOL_CALC_ROOM_WRITE_VAL_FINISH:
         for i in range(len(data_decoraiton_in_room)):
             parameters.append(data_decoraiton_in_room[i][0])
     check_par_room = (
@@ -237,7 +237,7 @@ def check_parameter_in_all_element(
             values = data_room_in_decoration.get(class_elt)
             parameters = []
             if values:
-                if dyn_bool_calc_room_write_val_finish:
+                if DYN_BOOL_CALC_ROOM_WRITE_VAL_FINISH:
                     parameters += [
                         data_decoraiton_in_room[i][1]
                         for i in range(len(data_decoraiton_in_room))
@@ -799,26 +799,29 @@ def set_finish_parameter_for_numbers_room(
     return decoration_elts
 
 
-rooms = get_selection_rooms()
-type_name_decoration = get_name_type_for_view_schedule()
-data_room_in_decoration = get_project_par_decoration_and_room(
-    dyn_name_recording_val_room_in_decoration
-)
-data_decoraiton_in_room = get_project_par_room_and_decoration(
-    dyn_name_recording_val_decoration_in_room
-)
-check_parameter_in_all_element(
-    rooms[0], data_room_in_decoration, data_decoraiton_in_room
-)
-decoration_elts = get_element_for_room_geometry(
-    rooms, type_name_decoration
-)
-add_decor_elt_in_par_room(
-    decoration_elts, data_room_in_decoration, dyn_bool_var_sort_in_data
-)
-if dyn_bool_calc_room_write_val_finish:
-    set_finish_parameter_for_numbers_room(
-        decoration_elts, data_decoraiton_in_room
+def main():
+    rooms = get_selection_rooms()
+    type_name_decoration = get_name_type_for_view_schedule()
+    data_room_in_decoration = get_project_par_decoration_and_room(
+        DYN_NAME_RECORDING_VAL_ROOM_IN_DECORATION
     )
+    data_decoraiton_in_room = get_project_par_room_and_decoration(
+        DYN_NAME_RECORDING_VAL_DECORATION_IN_ROOM
+    )
+    check_parameter_in_all_element(
+        rooms[0], data_room_in_decoration, data_decoraiton_in_room
+    )
+    decoration_elts = get_element_for_room_geometry(
+        rooms, type_name_decoration
+    )
+    add_decor_elt_in_par_room(
+        decoration_elts, data_room_in_decoration, DYN_BOOL_VAR_SORT_IN_DATA
+    )
+    if DYN_BOOL_CALC_ROOM_WRITE_VAL_FINISH:
+        set_finish_parameter_for_numbers_room(
+            decoration_elts, data_decoraiton_in_room
+        )
+    return decoration_elts.values()
 
-OUT = decoration_elts.values()
+
+OUT = main()

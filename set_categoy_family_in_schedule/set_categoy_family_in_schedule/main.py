@@ -1,11 +1,12 @@
 import clr
 clr.AddReference("RevitAPI")
-from Autodesk.Revit import DB
-from Autodesk.Revit.DB import FilteredElementCollector as FEC
+import Autodesk.Revit.DB as DB # noqa
 clr.AddReference("RevitNodes")
 clr.AddReference("RevitServices")
-from RevitServices.Persistence import DocumentManager
+import RevitServices.Persistence.DocumentManager as DocumentManager # noqa
 
+
+FEC = DB.FilteredElementCollector
 
 SET_NAME_SCHEDULE = 'ИзмКат_'
 NAME_TRANSACTION = 'DYNAMO Изменение категории спецификации.'
@@ -15,7 +16,7 @@ revit_document = DocumentManager.Instance.CurrentDBDocument
 app = uiapp.Application
 uidoc = uiapp.ActiveUIDocument
 
-category = DB.ElementId(IN[0].Id)
+category = DB.ElementId(IN[0].Id) # noqa
 
 
 class SelectException(Exception):
@@ -105,7 +106,9 @@ def copy_parameter_schedule(fst_schedule, scd_schedule):
     if fst_schedule.IsHeaderFrozen:
         scd_schedule.IsHeaderFrozen = fst_schedule.IsHeaderFrozen
     try:
-        scd_schedule.KeyScheduleParameterName = fst_schedule.KeyScheduleParameterName
+        scd_schedule.KeyScheduleParameterName = (
+            fst_schedule.KeyScheduleParameterName
+        )
     except Exception:
         pass
     scd_schedule.TitleTextTypeId = fst_schedule.TitleTextTypeId

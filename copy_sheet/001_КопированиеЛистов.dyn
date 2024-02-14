@@ -1,0 +1,317 @@
+{
+  "Uuid": "acdee1cc-7126-41a8-a80d-4a0c116869c2",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "036_ПереносЗначенияПараметраВоВложеноеСемейство",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonStringNode, PythonNodeModels",
+      "VariableInputPorts": true,
+      "NodeType": "ExtensionNode",
+      "Id": "a49a7b74aefc4390bac307521546f711",
+      "Inputs": [
+        {
+          "Id": "18d27936ca5649f29ea040d4e7d92091",
+          "Name": "script",
+          "Description": "Сценарий Python для запуска.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "28e93a59924246249728be07d348bb92",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "f75598348ca9463587199330a87b78bb",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5287aac7134b4b8383fe50545f74667a",
+          "Name": "OUT",
+          "Description": "Результат сценария Python",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Выполнение сценария IronPython из строки."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.IO.FileSystem.ReadText@var",
+      "Id": "b35602e2fa1145f6b2b9d38f6031bb39",
+      "Inputs": [
+        {
+          "Id": "d49daf7e50b84d458d973f09be7e1e65",
+          "Name": "file",
+          "Description": "var",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "1ad66463b69447259b90278ebdd05e44",
+          "Name": "str",
+          "Description": "Содержимое текстового файла.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Чтение текстового файла с выводом содержимого в виде строки.\n\nFileSystem.ReadText (file: var): string"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.FileObject, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "a02f8136821c4be5850bc26f25a4c203",
+      "Inputs": [
+        {
+          "Id": "b58373f8529340fc9cfa900ea8778692",
+          "Name": "path",
+          "Description": "Путь к файлу.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5c70363efe4e4dd89c6915cccc8f1bf7",
+          "Name": "file",
+          "Description": "Файловый объект",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Создание нового объекта на основе пути."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "NodeType": "StringInputNode",
+      "InputValue": "Y:\\!00_RevitFileServer\\99_BIM-Database\\080_Dynamo\\001_КопированиеЛистов\\copy_sheet\\main.py",
+      "Id": "ca0d55312e6a431c86171c64304a9918",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "57436c1b812146bd98d6ea5a2512e2f0",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Создание строки."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "f7db4f40872b4634937089acf5548b18",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "d945e9c392894615a613198eb06cca76",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Выбор между значениями true и false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "91a06172c31d4f2e9da9fb054d0afe0c",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c1867358d4c741dfbb49eef9b3f26199",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Выбор между значениями true и false."
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "1ad66463b69447259b90278ebdd05e44",
+      "End": "18d27936ca5649f29ea040d4e7d92091",
+      "Id": "0cf57e2661ea4cd4bd8f8c162f4a52a1"
+    },
+    {
+      "Start": "5c70363efe4e4dd89c6915cccc8f1bf7",
+      "End": "d49daf7e50b84d458d973f09be7e1e65",
+      "Id": "3fc62b61ecb14c01a4312a6cf137f09d"
+    },
+    {
+      "Start": "57436c1b812146bd98d6ea5a2512e2f0",
+      "End": "b58373f8529340fc9cfa900ea8778692",
+      "Id": "1a4f396f9b6a4e9b8b64eed7a10bb571"
+    },
+    {
+      "Start": "d945e9c392894615a613198eb06cca76",
+      "End": "f75598348ca9463587199330a87b78bb",
+      "Id": "d6e7f5e5939042bea55fc5d7d76145bf"
+    },
+    {
+      "Start": "c1867358d4c741dfbb49eef9b3f26199",
+      "End": "28e93a59924246249728be07d348bb92",
+      "Id": "38ea657c8ac347dcb8b954547abc45fd"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.6.1.8786",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Фоновый просмотр",
+      "EyeX": 92240.271618471917,
+      "EyeY": -1212.7685704926735,
+      "EyeZ": -103954.89487023887,
+      "LookX": 16421.447131528083,
+      "LookY": 5212.7685704926735,
+      "LookZ": 6697.9144014888734,
+      "UpX": 0.064590356352471956,
+      "UpY": -0.99756405025982886,
+      "UpZ": 0.02634485709726684
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script From String",
+        "Id": "a49a7b74aefc4390bac307521546f711",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 633.15663400792334,
+        "Y": 812.86493025805282
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "FileSystem.ReadText",
+        "Id": "b35602e2fa1145f6b2b9d38f6031bb39",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 634.55522542049675,
+        "Y": 730.244002421472
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "File From Path",
+        "Id": "a02f8136821c4be5850bc26f25a4c203",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 513.438786156885,
+        "Y": 729.78158679059061
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Путь до Python скрипта",
+        "Id": "ca0d55312e6a431c86171c64304a9918",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 289.0417768179758,
+        "Y": 729.73201695544662
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Повторятор",
+        "Id": "f7db4f40872b4634937089acf5548b18",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 437.86873290579064,
+        "Y": 909.003277281927
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Нужно ли копировать планы расположенные на листе",
+        "Id": "91a06172c31d4f2e9da9fb054d0afe0c",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 195.76132572635595,
+        "Y": 845.40824405967919
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "87f06aadb8b44d3cbf5e61478e2921b6",
+        "Title": "Путь до скрипта",
+        "Nodes": [
+          "ca0d55312e6a431c86171c64304a9918",
+          "a02f8136821c4be5850bc26f25a4c203",
+          "b35602e2fa1145f6b2b9d38f6031bb39"
+        ],
+        "Left": 279.0417768179758,
+        "Top": 676.73201695544662,
+        "Width": 518.513448602521,
+        "Height": 168.0,
+        "FontSize": 36.0,
+        "InitialTop": 729.73201695544662,
+        "InitialHeight": 145.51198546602541,
+        "TextblockHeight": 43.0,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": -142.57505511537244,
+    "Y": -506.37955171156932,
+    "Zoom": 0.94532122438358235
+  }
+}

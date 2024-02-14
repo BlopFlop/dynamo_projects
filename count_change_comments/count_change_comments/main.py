@@ -2,22 +2,26 @@ import os
 
 import clr
 clr.AddReference('RevitAPI')
-from Autodesk.Revit import DB
-from Autodesk.Revit.DB import FilteredElementCollector as FEC
+import Autodesk.Revit.DB as DB # noqa
 clr.AddReference('RevitServices')
-from RevitServices.Persistence import DocumentManager
+import RevitServices.Persistence.DocumentManager as DocumentManager # noqa
 
 
+FEC = DB.FilteredElementCollector
 PATHNAME_ANNOTAITIONS = '0021_ТаблицаИзменений_'
 PAR_NUMBER_CHANGE = '01_1_№ Изм'
 PAR_COUNT_CHANGE = '01_2_Кол-во измов/-'
-PAR_SH_NUM = DB.BuiltInParameter.SHEET_NUMBER
+BIP_PAR_SHEET_NUM = DB.BuiltInParameter.SHEET_NUMBER
+
+UIAPP = DocumentManager.Instance.CurrentUIApplication
+DOC = DocumentManager.Instance.CurrentDBDocument
+UIDOC = UIAPP.ActiveUIDocument
+
+DYN_NAME_FAMILY = IN[0] # noqa
+DYN_NAME_PAR_SHEET_FOR_COMMENTS = IN[1] # noqa
+DYN_NEED_DATA_ANALYS = IN[2] # noqa
 
 user_docs = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Documents')
-
-uiapp = DocumentManager.Instance.CurrentUIApplication
-doc = DocumentManager.Instance.CurrentDBDocument
-uidoc = uiapp.ActiveUIDocument
 
 
 def bprint(array='', depth=0):
@@ -124,7 +128,7 @@ def annotation_in_doc(document, name_family_annotation):
 
 
 def get_value_par_type_annotate(el, name_par):
-    return doc.GetElement(el.GetTypeId()).LookupParameter(name_par).AsString()
+    return DOC.GetElement(el.GetTypeId()).LookupParameter(name_par).AsString()
 
 
 class Sheet:
@@ -234,7 +238,7 @@ class Sheet:
 def get_data_analysis(select_element):
     '''Получение информации о аннотациях размещенных на листах'''
     select_sheet_ids = [sheet.Id.IntegerValue for sheet in select_element]
-    annotaions = annotation_in_doc(doc, PATHNAME_ANNOTAITIONS)
+    annotaions = annotation_in_doc(DOC, PATHNAME_ANNOTAITIONS)
     sheet_in_annotation = {
         annotate.OwnerViewId.IntegerValue: [] for annotate in annotaions
     }
@@ -246,46 +250,42 @@ def get_data_analysis(select_element):
     result = []
     for sheet_id, annotate_fam_name in sheet_in_annotation.items():
         if sheet_id in select_sheet_ids:
-            sheet = doc.GetElement(DB.ElementId(sheet_id))
-            name_sheet = sheet.Parameter[PAR_SH_NUM].AsString()
+            sheet = DOC.GetElement(DB.ElementId(sheet_id))
+            name_sheet = sheet.Parameter[BIP_PAR_SHEET_NUM].AsString()
             annotations_name = ', '.join(list(set(annotate_fam_name)))
             result.append(';'.join([name_sheet, annotations_name]))
     return sorted(result)
 
 
-name_family = IN[0]
-name_parameter_sheet_for_comments = IN[1]
-data_analysis = IN[2]
-
 select_element = [
-    doc.GetElement(element_id)
-    for element_id in uidoc.Selection.GetElementIds()
-    if isinstance(doc.GetElement(element_id), DB.ViewSheet)
+    DOC.GetElement(element_id)
+    for element_id in UIDOC.Selection.GetElementIds()
+    if isinstance(DOC.GetElement(element_id), DB.ViewSheet)
 ]
 
 check_select_sheet(select_element)
-check_value_par_in_sheet(select_element, name_parameter_sheet_for_comments)
+check_value_par_in_sheet(select_element, DYN_NAME_PAR_SHEET_FOR_COMMENTS)
 
-annotaions = annotation_in_doc(doc, name_family)
+annotaions = annotation_in_doc(DOC, DYN_NAME_FAMILY)
 
-revision_clouds = [cloud for cloud in FEC(doc).OfClass(DB.RevisionCloud)]
+revision_clouds = [cloud for cloud in FEC(DOC).OfClass(DB.RevisionCloud)]
 
 sheets = [
     Sheet(sheet, annotaions, revision_clouds) for sheet in select_element
 ]
 
 
-with DB.Transaction(doc, 'DYNAMO Подсчет измов.') as t:
+with DB.Transaction(DOC, 'DYNAMO Подсчет измов.') as t:
     t.Start()
     for sheet in sheets:
-        sheet.clean_par_sheet(name_parameter_sheet_for_comments)
+        sheet.clean_par_sheet(DYN_NAME_PAR_SHEET_FOR_COMMENTS)
         if sheet.annotaions and sheet.clouds:
             sheet.set_par_num_cloud()
-            sheet.set_par_sheet(name_parameter_sheet_for_comments)
+            sheet.set_par_sheet(DYN_NAME_PAR_SHEET_FOR_COMMENTS)
     t.Commit()
 
 
-if data_analysis:
+if DYN_NEED_DATA_ANALYS:
     OUT = get_data_analysis(select_element)
 else:
     OUT = ['Анализ не произведен']

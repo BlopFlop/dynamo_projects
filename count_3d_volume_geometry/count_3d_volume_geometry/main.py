@@ -1,9 +1,9 @@
 import clr
 clr.AddReference("RevitAPI")
-import Autodesk.Revit.DB as DB
+import Autodesk.Revit.DB as DB # noqa
 clr.AddReference("RevitNodes")
 clr.AddReference("RevitServices")
-from RevitServices.Persistence import DocumentManager
+from RevitServices.Persistence import DocumentManager # noqa
 
 
 TRANSACTION_NAME = 'DYNAMO Подсчет объема 3д геометрии'
@@ -18,8 +18,7 @@ FEC = DB.FilteredElementCollector
 GEOM_OPTIONS = DB.Options()
 GEOM_OPTIONS.DetailLevel = DB.ViewDetailLevel.Fine
 
-DYN_NAME_VOLUME_PAR = IN[0]
-# 'ADSK_Размер_Объем'
+DYN_NAME_VOLUME_PAR = IN[0] # noqa
 
 
 class SelecitonException(Exception):
