@@ -32,34 +32,50 @@ PATH_TEMPLATE_FAMITLY_TYPE_MODEL = (
 BINPAR_WORKSET = DB.BuiltInParameter.ELEM_PARTITION_PARAM
 SHOW_DIALOG_ID = 'Dialog_Revit_DocWarnDialog'
 
+UIAPP = DocumentManager.Instance.CurrentUIApplication
+DOC = DocumentManager.Instance.CurrentDBDocument
+APP = UIAPP.Application
+UIDOC = UIAPP.ActiveUIDocument
+
+G_OPTIONS = DB.Options()
+G_OPTIONS.DetailLevel = DB.ViewDetailLevel.Fine
+
 
 class SelectException(Exception):
     pass
 
 
 def event_close_dialog_box(sender, args):
-    """Закрытие диалогового окна"""
+    '''Закрытие диалогового окна'''
     if args.DialogId == SHOW_DIALOG_ID:
         args.OverrideResult(int(UI.TaskDialogResult.Cancel))
 
 
 def deco_events(func):
-    """
+    '''
     Функция декоратор, закрытие диалогового окна,
     возникающего из-за привязки размеров к геометрии лестниц.
     Происходит подписка и отписка от события message box.
-    """
+    '''
     def wrapper(*args, **kwargs):
         event_handler = (
-            EventHandler[
-                DialogBoxShowingEventArgs
-            ](event_close_dialog_box)
+            EventHandler[DialogBoxShowingEventArgs](event_close_dialog_box)
         )
-        uiapp.DialogBoxShowing += event_handler
+        UIAPP.DialogBoxShowing += event_handler
         result = func(*args, **kwargs)
-        uiapp.DialogBoxShowing -= event_handler
+        UIAPP.DialogBoxShowing -= event_handler
         return result
     return wrapper
+
+
+def get_select_stairs():
+    select_element = [
+        stair for stair in FEC(DOC).OfClass(DB.Architecture.Stairs)
+    ]
+    if not select_element:
+        except_message = 'В проекте не найдено ни одной лестницы!'
+        raise SelectException(except_message)
+    return select_element
 
 
 def get_all_solids_for_element(
@@ -162,7 +178,7 @@ def doc_get_and_cut_intersect_element(
     for element in elements:
         try:
             DB.InstanceVoidCutUtils.AddInstanceVoidCut(
-                doc, element, void_element
+                DOC, element, void_element
             )
         except Exception:
             continue
@@ -245,10 +261,8 @@ def copy_type(el_type, suffix):
 
 
 @deco_events
-def create_void_element(application,
-                        document,
-                        stairs,
-                        filter_category_id):
+def create_void_element(
+        application, document, stairs, filter_category_id):
     '''
     Создание пустотельного семейства в документе
     Переменные:
@@ -277,7 +291,7 @@ def create_void_element(application,
         solids = []
         for element in stairs:
             solid = get_all_solids_for_element(
-                DOC, element.Geometry[g_options]
+                DOC, element.Geometry[G_OPTIONS]
             )
             solids += solid
         solid = union_solids(solids)
@@ -334,17 +348,7 @@ def create_void_element(application,
     family_doc.Close(False)
 
 
-UIAPP = DocumentManager.Instance.CurrentUIApplication
-DOC = DocumentManager.Instance.CurrentDBDocument
-APP = UIAPP.Application
-UIDOC = UIAPP.ActiveUIDocument
-
-g_options = DB.Options()
-g_options.DetailLevel = DB.ViewDetailLevel.Fine
-
-stairs = [
-    stair for stair in FEC(DOC).OfClass(DB.Architecture.Stairs)
-]
+stairs = get_select_stairs()
 
 with DB.Transaction(DOC, MESSAGE_TRANSACTION_DELETE_FAM) as t:
     t.Start()
@@ -357,8 +361,5 @@ with DB.Transaction(DOC, MESSAGE_TRANSACTION_DELETE_FAM) as t:
     t.Commit()
 
 
-if not len(stairs):
-    raise SelectException('В проекте не найдено ни одной лестницы!')
-else:
-    create_void_element(APP, DOC, stairs, IN[1].Id) # noqa
-    OUT = 'Все готово'
+create_void_element(APP, DOC, stairs, IN[1].Id) # noqa
+OUT = 'Все готово'

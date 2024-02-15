@@ -1,19 +1,16 @@
 import clr
 clr.AddReference("RevitAPI")
-from Autodesk.Revit import DB
+from Autodesk.Revit import DB # noqa
 clr.AddReference('RevitServices')
-from RevitServices.Persistence import DocumentManager
+from RevitServices.Persistence import DocumentManager # noqa
 
 
-TRANSACTION_NAME = (
-    'DYNAMO Соединение выбранных стен под углом.'
-)
+TRANSACTION_NAME = 'DYNAMO Соединение выбранных стен под углом.'
 
-
-uiapp = DocumentManager.Instance.CurrentUIApplication
-doc = DocumentManager.Instance.CurrentDBDocument
-app = uiapp.Application
-uidoc = uiapp.ActiveUIDocument
+UIAPP = DocumentManager.Instance.CurrentUIApplication
+DOC = DocumentManager.Instance.CurrentDBDocument
+APP = UIAPP.Application
+UIDOC = UIAPP.ActiveUIDocument
 
 
 class SelectException(Exception):
@@ -30,7 +27,7 @@ def set_miter_walls(walls):
     """
     Mitter compound for walls
     """
-    with DB.Transaction(doc, TRANSACTION_NAME) as t:
+    with DB.Transaction(DOC, TRANSACTION_NAME) as t:
         t.Start()
         for wall in walls:
             location_curve = wall.Location
@@ -40,8 +37,8 @@ def set_miter_walls(walls):
 
 
 selection_wall = set_miter_walls([
-    doc.GetElement(el_id) for el_id in uidoc.Selection.GetElementIds()
-    if isinstance(doc.GetElement(el_id), DB.Wall)
+    DOC.GetElement(el_id) for el_id in UIDOC.Selection.GetElementIds()
+    if isinstance(DOC.GetElement(el_id), DB.Wall)
 ])
 
 check_selection_element(selection_wall)

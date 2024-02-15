@@ -1,8 +1,8 @@
 import clr
 clr.AddReference("RevitAPI")
-import Autodesk.Revit.DB as DB
+import Autodesk.Revit.DB as DB # noqa
 clr.AddReference('RevitServices')
-from RevitServices.Persistence import DocumentManager
+from RevitServices.Persistence import DocumentManager # noqa
 
 
 DOC = DocumentManager.Instance.CurrentDBDocument
@@ -13,8 +13,8 @@ UI_DOC = UI_APP.ActiveUIDocument
 FEC = DB.FilteredElementCollector
 TRANSACTION_NAME = 'DYNAMO Трансфер значения параметров у вложенных элементов.'
 
-SOURCE_NAME_PAR = IN[0]
-DEST_NAME_PAR = IN[1]
+SOURCE_NAME_PAR = IN[0] # noqa
+DEST_NAME_PAR = IN[1] # noqa
 
 
 class SelectException(Exception):

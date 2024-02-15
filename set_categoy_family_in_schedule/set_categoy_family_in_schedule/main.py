@@ -11,12 +11,12 @@ FEC = DB.FilteredElementCollector
 SET_NAME_SCHEDULE = 'ИзмКат_'
 NAME_TRANSACTION = 'DYNAMO Изменение категории спецификации.'
 
-uiapp = DocumentManager.Instance.CurrentUIApplication
-revit_document = DocumentManager.Instance.CurrentDBDocument
-app = uiapp.Application
-uidoc = uiapp.ActiveUIDocument
+UIAPP = DocumentManager.Instance.CurrentUIApplication
+DOC = DocumentManager.Instance.CurrentDBDocument
+APP = UIAPP.Application
+UIDOC = UIAPP.ActiveUIDocument
 
-category = DB.ElementId(IN[0].Id) # noqa
+DYN_CATEGORY = DB.ElementId(IN[0].Id) # noqa
 
 
 class SelectException(Exception):
@@ -41,7 +41,7 @@ def transaciton(t_name=NAME_TRANSACTION):
     '''Функция декоратор транзакции'''
     def decorator(func):
         def wrapper(*args, **kwargs):
-            with DB.Transaction(revit_document, t_name) as t:
+            with DB.Transaction(DOC, t_name) as t:
                 t.Start()
                 result = func(*args, **kwargs)
                 t.Commit()
@@ -53,8 +53,8 @@ def transaciton(t_name=NAME_TRANSACTION):
 def get_select_schedule():
     '''Получение выбираемых спецификаций.'''
     select_element = [
-        revit_document.GetElement(select_element)
-        for select_element in uidoc.Selection.GetElementIds()
+        DOC.GetElement(select_element)
+        for select_element in UIDOC.Selection.GetElementIds()
     ]
     if select_element:
         return select_element[0]
@@ -87,9 +87,9 @@ def copy_parameter_schedule(fst_schedule, scd_schedule):
     copy_all_parameters(fst_schedule_params, scd_schedule_params)
     scd_schedule.Pinned = fst_schedule.Pinned
     fst_cat_name = (
-        FEC(revit_document, fst_schedule.Id).FirstElement().Category.Name
+        FEC(DOC, fst_schedule.Id).FirstElement().Category.Name
     )
-    scd_cat_name = DB.Category.GetCategory(revit_document, category).Name
+    scd_cat_name = DB.Category.GetCategory(DOC, DYN_CATEGORY).Name
     set_name = '_'.join(
         (
             fst_schedule.Name,
@@ -234,16 +234,14 @@ def copy_definition_schedule(fst_schedule, scd_schedule):
 @transaciton(t_name=NAME_TRANSACTION)
 def set_class_schedule(select_schedule, set_category_id):
     '''Смена класса семейства в спецификации'''
-    new_schedule = DB.ViewSchedule.CreateSchedule(
-        revit_document, set_category_id
-    )
-    revit_document.Regenerate
+    new_schedule = DB.ViewSchedule.CreateSchedule(DOC, set_category_id)
+    DOC.Regenerate
     copy_parameter_schedule(select_schedule, new_schedule)
-    revit_document.Regenerate
+    DOC.Regenerate
     copy_definition_schedule(select_schedule, new_schedule)
-    revit_document.Regenerate
+    DOC.Regenerate
     copy_filters_and_sort_group(select_schedule, new_schedule)
 
 
 select_schedule = get_select_schedule()
-set_class_schedule(select_schedule, category)
+set_class_schedule(select_schedule, DYN_CATEGORY)
