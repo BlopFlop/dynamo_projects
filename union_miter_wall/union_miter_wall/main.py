@@ -24,9 +24,7 @@ def check_selection_element(select_el):
 
 
 def set_miter_walls(walls):
-    """
-    Mitter compound for walls
-    """
+    '''Mitter compound for walls'''
     with DB.Transaction(DOC, TRANSACTION_NAME) as t:
         t.Start()
         for wall in walls:
