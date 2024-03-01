@@ -128,7 +128,7 @@
     {
       "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
       "NodeType": "StringInputNode",
-      "InputValue": "***Вам необходимо заполнить путь до исполняемого файла \"main.py\"",
+      "InputValue": "C:\\dynamo_projects\\dynamo_cut_geom_stairs\\cut_geom_stairs\\main.py",
       "Id": "ca0d55312e6a431c86171c64304a9918",
       "Inputs": [],
       "Outputs": [
@@ -251,8 +251,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 346.72700189636151,
-        "Y": 806.78410668409651
+        "X": 350.1147460069688,
+        "Y": 912.9334221497918
       },
       {
         "ShowGeometry": true,
@@ -291,8 +291,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 18.972996887712952,
-        "Y": 894.19707697850345
+        "X": 20.102244924582067,
+        "Y": 896.45557305224156
       },
       {
         "ShowGeometry": true,
@@ -320,13 +320,13 @@
         "Height": 153.74651060771293,
         "FontSize": 36.0,
         "InitialTop": 716.538541554538,
-        "InitialHeight": 145.51198546602541,
+        "InitialHeight": 146.74651060771293,
         "TextblockHeight": 43.0,
         "Background": "#FFC1D676"
       }
     ],
-    "X": 132.72287135013312,
-    "Y": -321.79232322670737,
-    "Zoom": 0.885545041789538
+    "X": 23.015559232020337,
+    "Y": -581.30363393929974,
+    "Zoom": 1.0567808267868857
   }
 }

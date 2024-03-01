@@ -16,11 +16,10 @@ NAME_TRANSACITON_COUNT_DECOR = 'DYNAMO Подсчет отделки помещ�
 NAME_TRANSACITON_SET_PAR_DECOR = 'DYNAMO Запись параметров отделки в помещения'
 CLASS_ELEMENTS = [DB.Wall, DB.Floor, DB.Ceiling, DB.WallSweep]
 
-revit_document = DocumentManager.Instance.CurrentDBDocument
-
-uiapp = DocumentManager.Instance.CurrentUIApplication
-app = uiapp.Application
-uidoc = uiapp.ActiveUIDocument
+DOC = DocumentManager.Instance.CurrentDBDocument
+UIAPP = DocumentManager.Instance.CurrentUIApplication
+APP = UIAPP.Application
+UIDOC = UIAPP.ActiveUIDocument
 
 DYN_BOOL_CALC_ROOM_WRITE_VAL_FINISH = IN[0] # noqa
 DYN_BOOL_VAR_SORT_IN_DATA = IN[1] # noqa
@@ -55,7 +54,7 @@ def transaction(t_name='Transaction'):
     '''Функция декоратор транзакции.'''
     def decorator(func):
         def wrappper(*args, **kwargs):
-            with DB.Transaction(revit_document, t_name) as t:
+            with DB.Transaction(DOC, t_name) as t:
                 t.Start()
                 func_call = func(*args, **kwargs)
                 t.Commit()
@@ -71,7 +70,7 @@ def unit_conventer(
         number_of_digits=None):
     '''Конвертер единиц ревит.'''
     display_units = (
-        revit_document.GetUnits().GetFormatOptions(unit_type).DisplayUnits
+        DOC.GetUnits().GetFormatOptions(unit_type).DisplayUnits
     )
     method = DB.UnitUtils.ConvertToInternalUnits if to_internal \
         else DB.UnitUtils.ConvertFromInternalUnits
@@ -110,9 +109,9 @@ def get_selection_rooms():
     '''Получение выбранных в Revit помещений.'''
     except_message = 'Вы не выбрали ни одного помещения'
     rooms = [
-        revit_document.GetElement(room)
-        for room in uidoc.Selection.GetElementIds()
-        if isinstance(revit_document.GetElement(room), DB.Architecture.Room)
+        DOC.GetElement(room)
+        for room in UIDOC.Selection.GetElementIds()
+        if isinstance(DOC.GetElement(room), DB.Architecture.Room)
     ]
     if not rooms:
         raise SelectException(except_message)
@@ -165,13 +164,13 @@ def get_name_type_for_view_schedule():
     '''Получение имен типоразмеров отображенных в спецификации.'''
     name_schedules = get_name_schedule()
     schedules = [
-        schedule for schedule in FEC(revit_document).OfClass(DB.ViewSchedule)
+        schedule for schedule in FEC(DOC).OfClass(DB.ViewSchedule)
         if schedule.Name in name_schedules
     ]
     names_type = []
     for schedule in schedules:
         type_elements_in_schedule = (
-            FEC(revit_document, schedule.Id).WhereElementIsNotElementType()
+            FEC(DOC, schedule.Id).WhereElementIsNotElementType()
         )
         for element in type_elements_in_schedule:
             names_type.append(
@@ -184,7 +183,7 @@ def get_name_type_for_view_schedule():
 def check_parameters(element, parameters_name):
     '''Проверка элемента на наличие необходимых параметров.'''
     cat_name = element.Category.Name
-    element_type = revit_document.GetElement(element.GetTypeId())
+    element_type = DOC.GetElement(element.GetTypeId())
     result = []
 
     for parameter_name in parameters_name:
@@ -232,7 +231,7 @@ def check_parameter_in_all_element(
     )
 
     for class_elt in CLASS_ELEMENTS:
-        element = FEC(revit_document).OfClass(class_elt).FirstElement()
+        element = FEC(DOC).OfClass(class_elt).FirstElement()
         if element:
             values = data_room_in_decoration.get(class_elt)
             parameters = []
@@ -261,7 +260,7 @@ def get_all_element_for_name_type(name_finish_rooms, classes):
         list_type.Add(cls)
     all_elements_for_name_type = {
         element.Id.IntegerValue: element for element in FEC(
-            revit_document).WherePasses(DB.ElementMulticlassFilter(list_type))
+            DOC).WherePasses(DB.ElementMulticlassFilter(list_type))
         if element.Parameter[
             DB.BuiltInParameter.ELEM_TYPE_PARAM
         ].AsValueString() in name_finish_rooms
@@ -318,7 +317,7 @@ def is_point_in_room_for_xyz_floor_or_ceiling(room, element, solid):
     Получение точек геометрии пола и потолка и
     проверка на нахождение их в помещении
     '''
-    width = revit_document.GetElement(
+    width = DOC.GetElement(
         element.GetTypeId()).GetCompoundStructure().GetWidth()
 
     geometry_direction = width/2 * DB.XYZ(0, 0, 1).Normalize()
@@ -437,21 +436,27 @@ def append_element_for_wallsweep(
         ]
     }
     """
-    for room in element_for_room_geometry.keys():
-        element_for_room_geometry[room].append([])
     wallsweeps = {
         element: [
             host_element.IntegerValue for host_element in element.GetHostIds()
-        ] for element in all_element_for_name_type
-        if isinstance(element, CLASS_ELEMENTS[3])}
-    for wallsweep in wallsweeps.keys():
-        host_walls_id = wallsweeps.get(wallsweep)
+        ]
+        for element in all_element_for_name_type
+        if isinstance(element, CLASS_ELEMENTS[3])
+    }
+    for room in element_for_room_geometry.keys():
+        element_for_room_geometry[room].append([])
+
+    for wallsweep, host_walls_id in wallsweeps.items():
+
         for room, value in element_for_room_geometry.items():
-            walls_id = [wall.Id.IntegerValue for wall in value[0]]
-            for host_wall_id in host_walls_id:
-                if host_wall_id in walls_id:
-                    element_for_room_geometry[room][3].append(wallsweep)
-                    break
+            if value[0] and isinstance(value[0][0], DB.Wall):
+                walls_id = [wall.Id.IntegerValue for wall in value[0]]
+
+                for host_wall_id in host_walls_id:
+                    if host_wall_id in walls_id:
+                        element_for_room_geometry[room][3].append(wallsweep)
+                        break
+
     return element_for_room_geometry
 
 
@@ -491,7 +496,7 @@ def get_element_for_room_geometry(rooms, name_finish_rooms):
     Options.StoreFreeBoundaryFaces = True
     Options.SpatialElementBoundaryLocation = (
         DB.SpatialElementBoundaryLocation.Finish)
-    Splatian = DB.SpatialElementGeometryCalculator(revit_document, Options)
+    Splatian = DB.SpatialElementGeometryCalculator(DOC, Options)
 
     element_for_room_geometry = {}
 
@@ -511,7 +516,7 @@ def get_element_for_room_geometry(rooms, name_finish_rooms):
         for face_info in flatten(faces_info):
             if isinstance(face_info, DB.SpatialElementBoundarySubface):
                 bip_type = DB.BuiltInParameter.ELEM_TYPE_PARAM
-                element = revit_document.GetElement(
+                element = DOC.GetElement(
                     face_info.SpatialBoundaryElement.HostElementId
                 )
                 if element:
@@ -539,6 +544,9 @@ def get_element_for_room_geometry(rooms, name_finish_rooms):
     ]
 
     element_for_room_geometry = append_element_for_xyz_in_room(
+        element_for_room_geometry, all_element_for_name_type
+    )
+    element_for_room_geometry = append_element_for_wallsweep(
         element_for_room_geometry, all_element_for_name_type
     )
     return element_for_room_geometry
@@ -579,7 +587,7 @@ def union_parameter_instance(instances, parameter_name):
             sum(result), False, parameter_unit_type
         )
         result = round(value, 2)
-        if parameter_unit_type == DB.DisplayUnitType.DUT_MILLIMETERS:
+        if parameter.DisplayUnitType == DB.DisplayUnitType.DUT_MILLIMETERS:
             result = round(result/1000, 2)
 
     return result
@@ -620,10 +628,7 @@ def sort_data_decoraitons(data):
 
 
 def set_parameter_room_in_decoration(
-        room,
-        decoraiton_elts,
-        parameters,
-        sort_data):
+        room, decoraiton_elts, parameters, sort_data):
     '''Добавление значений параметров отделки помещений в помещения'''
     decoraiton_elts = sort_el_type_and_instance(decoraiton_elts)
     decoration_parameters = {
@@ -631,7 +636,7 @@ def set_parameter_room_in_decoration(
     }
 
     for el_type, el_instances in decoraiton_elts.items():
-        el_type = revit_document.GetElement(DB.ElementId(el_type))
+        el_type = DOC.GetElement(DB.ElementId(el_type))
         for parameter in parameters:
             parameter_el_type = el_type.LookupParameter(parameter[0])
             if parameter_el_type:

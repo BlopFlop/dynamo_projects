@@ -20,8 +20,7 @@ FEC = DB.FilteredElementCollector
 
 MESSAGE_TRANSACTION_DELETE_FAM = 'DYNAMO Удаление старого семейства'
 MESSAGE_TRANSACTION_CUT_VOID_ELT = (
-    'DYNAMO Создание полого элемента лестницы,'
-    ' и прорезание всех пересекающихся элементов'
+    'DYNAMO Создание полого элемента лестницы id'
 )
 CREATE_FAMILY_NAME = 'CutGeometryElements'
 PATH_TEMPLATE_FAMITLY_TYPE_MODEL = (
@@ -46,20 +45,22 @@ class SelectException(Exception):
 
 
 def event_close_dialog_box(sender, args):
-    '''Закрытие диалогового окна'''
+    """Закрытие диалогового окна"""
     if args.DialogId == SHOW_DIALOG_ID:
         args.OverrideResult(int(UI.TaskDialogResult.Cancel))
 
 
 def deco_events(func):
-    '''
+    """
     Функция декоратор, закрытие диалогового окна,
     возникающего из-за привязки размеров к геометрии лестниц.
     Происходит подписка и отписка от события message box.
-    '''
+    """
     def wrapper(*args, **kwargs):
         event_handler = (
-            EventHandler[DialogBoxShowingEventArgs](event_close_dialog_box)
+            EventHandler[
+                DialogBoxShowingEventArgs
+            ](event_close_dialog_box)
         )
         UIAPP.DialogBoxShowing += event_handler
         result = func(*args, **kwargs)
@@ -68,18 +69,32 @@ def deco_events(func):
     return wrapper
 
 
-def get_select_stairs():
-    select_element = [
+def get_stairs():
+    '''Получение всех лестниц в проекте.'''
+    stairs = [
         stair for stair in FEC(DOC).OfClass(DB.Architecture.Stairs)
     ]
-    if not select_element:
-        except_message = 'В проекте не найдено ни одной лестницы!'
-        raise SelectException(except_message)
-    return select_element
+    if not stairs:
+        raise SelectException('В проекте не найдено ни одной лестницы!')
+    return stairs
 
 
-def get_all_solids_for_element(
-        document, geometry_element):
+def delete_family():
+    '''Удаление ранее вставленного семейства'''
+    with DB.Transaction(DOC, MESSAGE_TRANSACTION_DELETE_FAM) as t:
+        t.Start()
+        delete_family = [
+            family for family in FEC(DOC).OfClass(DB.Family)
+            if CREATE_FAMILY_NAME in family.Name or 'Семейство' in family.Name
+        ]
+        if delete_family:
+            for del_fam in delete_family:
+                DOC.Delete(del_fam.Id)
+        DOC.Regenerate
+        t.Commit()
+
+
+def get_all_solids_for_element(document, geometry_element):
     '''
     Получение всех солидов в геометрическом элементе
     Переменные:
@@ -127,7 +142,7 @@ def union_solids(solids):
     return union_solid
 
 
-def create_new_family_element(document, name_symbol):
+def create_new_family_element(document, family):
     '''
     Создание семейства в документе
     Переменные:
@@ -135,25 +150,21 @@ def create_new_family_element(document, name_symbol):
     name_symbol: str
     Возвращаемые значения: DB.FamilyInstance
     '''
-    built_in_par = DB.BuiltInParameter.ALL_MODEL_TYPE_NAME
-    symbol = [
-        element for element in FEC(document).OfClass(DB.FamilySymbol)
-        if name_symbol == element.Parameter[built_in_par].AsString()
-    ][0]
+    symbol = document.GetElement(list(family.GetFamilySymbolIds())[0])
     symbol.Activate()
     try:
         return document.Create.NewFamilyInstance(
-            DB.XYZ(0, 0, 0), symbol, DB.Structure.StructuralType.NonStructural
-        )
+            DB.XYZ(0, 0, 0),
+            symbol,
+            DB.Structure.StructuralType.NonStructural)
     except Exception:
         return None
 
 
 def doc_get_and_cut_intersect_element(
         document,
-        intersect_elmenets,
-        void_element,
-        filter_category_id):
+        intersect_element,
+        void_element):
     '''
     Получение и вырезание пересекающихся элементов
     Переменные:
@@ -164,24 +175,14 @@ def doc_get_and_cut_intersect_element(
     которое обрезает пересекающиеся элементы.
     filter_category_id: DB.ElementId(DB.Category) Айди игнорируемой категории
     '''
-    elements = []
-    for inter_element in intersect_elmenets:
-        filter = DB.ElementIntersectsElementFilter(inter_element)
-        elements += [
-            element for element in FEC(document).WherePasses(filter)
-        ]
-    elements = [
-        element for element in elements
-        if element.Category.Id != DB.ElementId(filter_category_id)
-    ]
-    elements = set(elements)
-    for element in elements:
+    filter = DB.ElementIntersectsElementFilter(intersect_element)
+    for element in FEC(document).WherePasses(filter):
         try:
             DB.InstanceVoidCutUtils.AddInstanceVoidCut(
                 DOC, element, void_element
             )
         except Exception:
-            continue
+            pass
 
 
 def create_free_form_elt(fam_doc, solids):
@@ -194,7 +195,9 @@ def create_free_form_elt(fam_doc, solids):
     '''
     free_form_list = []
     for solid in solids:
-        free_form_list.append(DB.FreeFormElement.Create(fam_doc, solid))
+        free_form_list.append(
+            DB.FreeFormElement.Create(fam_doc, solid)
+        )
     return free_form_list
 
 
@@ -261,8 +264,9 @@ def copy_type(el_type, suffix):
 
 
 @deco_events
-def create_void_element(
-        application, document, stairs, filter_category_id):
+def create_void_element(application,
+                        document,
+                        stairs):
     '''
     Создание пустотельного семейства в документе
     Переменные:
@@ -271,12 +275,6 @@ def create_void_element(
     stairs: List[DB.Architecture.Stairs]
     filter_category_id: DB.ElementId(DB.Category)
     '''
-    solids = []
-
-    family_doc = application.NewFamilyDocument(
-        PATH_TEMPLATE_FAMITLY_TYPE_MODEL
-    )
-
     with DB.Transaction(document, 'Get all geometry') as t:
         t.Start()
         types_elt = {el.GetTypeId() for el in stairs}
@@ -288,78 +286,63 @@ def create_void_element(
 
         document.Regenerate()
 
-        solids = []
-        for element in stairs:
-            solid = get_all_solids_for_element(
-                DOC, element.Geometry[G_OPTIONS]
+        stair_solids = {}
+        for stair in stairs:
+            stair_solids[stair] = union_solids(
+                get_all_solids_for_element(DOC, stair.Geometry[G_OPTIONS])
             )
-            solids += solid
-        solid = union_solids(solids)
         t.RollBack()
 
-    with DB.Transaction(family_doc, 'Test') as t:
-        t.Start()
-        list_forms = create_free_form_elt(
-            family_doc, [solid]
+    stair_freeform = {}
+    for stair, solid in stair_solids.items():
+        family_doc = application.NewFamilyDocument(
+            PATH_TEMPLATE_FAMITLY_TYPE_MODEL
         )
+        with DB.Transaction(family_doc, 'test') as fam_t:
+            fam_t.Start()
+            list_forms = create_free_form_elt(family_doc, [solid])
+            family_doc.Regenerate()
+            built_in_par = DB.BuiltInParameter.ELEMENT_IS_CUTTING
+            for form in list_forms:
+                form.Parameter[built_in_par].Set(1)
+            family_doc.Regenerate()
+            family_doc.FamilyManager.NewType(
+                ' '.join([CREATE_FAMILY_NAME, str(stair.Id.IntegerValue)])
+            )
+            family_doc.OwnerFamily.Parameter[
+                DB.BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS].Set(1)
+            fam = family_doc.LoadFamily(document)
+            stair_freeform[fam.Id.IntegerValue] = stair
+            fam_t.Commit()
+        family_doc.Close(False)
 
-        family_doc.Regenerate()
-
-        built_in_par = DB.BuiltInParameter.ELEMENT_IS_CUTTING
-        for form in list_forms:
-            form.Parameter[built_in_par].Set(1)
-
-        family_doc.Regenerate()
-
-        family_doc.FamilyManager.NewType(CREATE_FAMILY_NAME)
-        family_doc.OwnerFamily.Parameter[
-            DB.BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS].Set(1)
-        fam = family_doc.LoadFamily(document)
-        t.Commit()
-
-    with DB.Transaction(document, MESSAGE_TRANSACTION_CUT_VOID_ELT) as t:
-        t.Start()
-        delete_family = [
-            family for family in FEC(document).OfClass(DB.Family)
-            if family.Name == CREATE_FAMILY_NAME
-        ]
-        if delete_family:
-            document.Delete(delete_family[0])
-
-        document.Regenerate()
-
-        fam.Name = CREATE_FAMILY_NAME
-
-        document.Regenerate()
-
-        void_element = create_new_family_element(
-            document, CREATE_FAMILY_NAME)
-
-        if document.IsWorkshared:
-            void_element.Parameter[BINPAR_WORKSET].Set(
-                stairs[0].Parameter[BINPAR_WORKSET].AsInteger())
-
-        document.Regenerate()
-
-        doc_get_and_cut_intersect_element(
-            document, stairs, void_element, filter_category_id
+    for fam_id, stair in stair_freeform.items():
+        transaction_message = ' '.join(
+            [MESSAGE_TRANSACTION_CUT_VOID_ELT, str(stair.Id.IntegerValue)]
         )
-        t.Commit()
-    family_doc.Close(False)
+        with DB.Transaction(document, transaction_message) as t:
+            t.Start()
+            fam = document.GetElement(DB.ElementId(fam_id))
+            fam.Name = ' '.join(
+                [CREATE_FAMILY_NAME, str(stair.Id.IntegerValue)]
+            )
+
+            void_element = create_new_family_element(document, fam)
+            void_element.pinned = True
+            if document.IsWorkshared:
+                void_element.Parameter[BINPAR_WORKSET].Set(
+                    stair.Parameter[BINPAR_WORKSET].AsInteger()
+                )
+            document.Regenerate()
+            doc_get_and_cut_intersect_element(
+                document, stair, void_element
+            )
+            t.Commit()
 
 
-stairs = get_select_stairs()
+stairs = get_stairs()
 
-with DB.Transaction(DOC, MESSAGE_TRANSACTION_DELETE_FAM) as t:
-    t.Start()
-    delete_family = [
-        family for family in FEC(DOC).OfClass(DB.Family)
-        if family.Name == CREATE_FAMILY_NAME
-    ]
-    if delete_family:
-        DOC.Delete(delete_family[0].Id)
-    t.Commit()
+delete_family()
 
-
-create_void_element(APP, DOC, stairs, IN[1].Id) # noqa
+create_void_element(APP, DOC, stairs)
 OUT = 'Все готово'
